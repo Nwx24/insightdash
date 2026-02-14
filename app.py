@@ -2,6 +2,8 @@ import streamlit as st
 import pandas as pd
 from pathlib import Path
 from datetime import datetime
+from scr.filtering import is_numeric_series, filter_numeric_range, filter_by_values
+from scr.reporting import build_markdwon_report
 
 st.set_page_config(page_title="InsightDash", layout="wide", page_icon="🕸️")
 st.title("InsightDash")
@@ -30,8 +32,10 @@ filtered_df = df.copy()
 # Optional: normalize headers for messy CSVs
 # df.columns = df.columns.str.strip().str.lower()
 
-st.subheader("Data preview")
-st.dataframe(df, width="stretch")
+st.subheader("Data")
+
+with st.expander("Data preview (click to expand)", expanded=False):
+    st.dataframe(df, width="stretch")
 
 st.subheader("Filter")
 
@@ -40,7 +44,7 @@ filter_col = st.selectbox("Choose a column", df.columns)
 col = df[filter_col]
 col_no_na = col.dropna()
 
-if pd.api.types.is_numeric_dtype(col_no_na):
+if is_numeric_series(col):
     min_val = float(col_no_na.min())
     max_val = float(col_no_na.max())
 
@@ -51,7 +55,7 @@ if pd.api.types.is_numeric_dtype(col_no_na):
         value=(min_val, max_val)
     )
 
-    filtered_df = df[(df[filter_col] >= low) & (df[filter_col] <= high)]
+    filtered_df = filter_numeric_range(df, filter_col, low, high)
 else:
     unique_vals = sorted(col_no_na.astype(str).unique().tolist())
 
@@ -62,7 +66,7 @@ else:
     )
 
     if selected_vals:
-        filtered_df = df[df[filter_col].astype(str).isin(selected_vals)]
+        filtered_df = filter_by_values(df, filter_col, selected_vals)
     else:
         filtered_df = df.iloc[0:0]  # empty (0 rows)
 
@@ -149,7 +153,8 @@ st.download_button(
     label = "Download report (Markdown)",
     data=report_md.encode("utf-8"),
     file_name="report.md",
-    mime="text/markdown"
+    mime="text/markdown",
+    report_md = build_markdown_report(df, filtered_df, filter_col)
 )
 
 with st.expander("Preview report:"):
