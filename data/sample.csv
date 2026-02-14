@@ -1,0 +1,8 @@
+date,department,amount,category
+2026-01-03,Sales,1200,Hardware
+2026-01-04,Sales,300,Software
+2026-01-05,IT,450,Software
+2026-01-07,HR,200,Training
+2026-01-08,IT,900,Hardware
+2026-01-10,Sales,150,Training
+2026-01-12,HR,600,Software
