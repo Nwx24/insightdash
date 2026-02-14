@@ -78,3 +78,32 @@ st.download_button(
     file_name="filtered.csv",
     mime="text/csv"
 )
+
+st.subheader("Chart (filtered data)")
+
+# Find numeric columns in the filtered data
+numeric_cols = [
+    c for c in filtered_df.columns
+    if pd.api.types.is_numeric_dtype(filtered_df[c])
+]
+
+if numeric_cols:
+    chart_col = st.selectbox("Choose a numeric column to chart", numeric_cols)
+
+    st.write(f"Charting: {chart_col}")
+    group_by_canidates = [
+        c for c in filtered_df.columns
+        if not pd.api.types.is_numeric_dtype(filtered_df[c])
+    ]
+
+    group_col = st.selectbox("Group by (optional)", ["(no grouping)"] + group_by_canidates)
+
+    if group_col == "(no grouping)":
+        st.bar_chart(filtered_df[chart_col])
+    else:
+        grouped = (
+            filtered_df.groupby(group_col)[chart_col]
+            .sum()
+            .sort_values(ascending=False)
+        )
+        st.bar_chart(grouped)
