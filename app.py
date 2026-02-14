@@ -2,8 +2,8 @@ import streamlit as st
 import pandas as pd
 from pathlib import Path
 from datetime import datetime
-from scr.filtering import is_numeric_series, filter_numeric_range, filter_by_values
-from scr.reporting import build_markdwon_report
+from src.filtering import is_numeric_series, filter_numeric_range, filter_by_values
+from src.reporting import build_markdown_report
 
 st.set_page_config(page_title="InsightDash", layout="wide", page_icon="🕸️")
 st.title("InsightDash")
@@ -114,48 +114,15 @@ if numeric_cols:
         st.bar_chart(grouped)
 
 st.subheader("Report")
-report_lines = []
-report_lines.append("# InsightDash Report")
-report_lines.append("")
-report_lines.append(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-report_lines.append(f"Filter column: {filter_col}")
-report_lines.append(f"Rows shown: {len(filtered_df)} of {len(df)}")
-report_lines.append("")
 
-# Basic stats table for numeric columns
-numeric_cols = [
-    c for c in filtered_df.columns
-    if pd.api.types.is_numeric_dtype(filtered_df[c])
-]
-
-if numeric_cols:
-    report_lines.append("## Numeric Summary (filtered)")
-    report_lines.append("")
-    summary = filtered_df[numeric_cols].describe().T # count/mean/std/25/50/75/max
-    report_lines.append(summary.to_markdown())
-    report_lines.append("")
-else:
-    report_lines.append("## Numeric Summary (filtered)")
-    report_lines.append("")
-    report_lines.append("_No numeric columns available._")
-    report_lines.append("")
-
-# Missing values
-report_lines.append("## Missing Values (filtered)")
-report_lines.append("")
-missing = filtered_df.isna().sum()
-report_lines.append(missing.to_frame("missing_count").to_markdown())
-report_lines.append("")
-
-report_md = "\n".join(report_lines)
+report_md = build_markdown_report(df, filtered_df, filter_col)
 
 st.download_button(
     label = "Download report (Markdown)",
     data=report_md.encode("utf-8"),
     file_name="report.md",
-    mime="text/markdown",
-    report_md = build_markdown_report(df, filtered_df, filter_col)
+    mime="text/markdown"
 )
 
-with st.expander("Preview report:"):
+with st.expander("Preview report"):
     st.markdown(report_md)
